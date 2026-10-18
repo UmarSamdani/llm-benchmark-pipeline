@@ -45,6 +45,12 @@ Resources:
             BucketName: !Ref RawDataBucket
         - DynamoDBWritePolicy:
             TableName: !Ref ModelTable
+      Events:
+        DailySync:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 9 * * ? *)
+            Description: Daily OpenRouter pricing sync
   
 
 Outputs:
