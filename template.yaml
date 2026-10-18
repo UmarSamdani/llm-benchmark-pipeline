@@ -28,8 +28,29 @@ Resources:
         - AttributeName: SK
           KeyType: RANGE
 
+  SyncPricingFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/sync_pricing/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Timeout: 60
+      MemorySize: 256
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref RawDataBucket
+          TABLE_NAME: !Ref ModelTable
+      Policies:
+        - S3WritePolicy:
+            BucketName: !Ref RawDataBucket
+        - DynamoDBWritePolicy:
+            TableName: !Ref ModelTable
+  
+
 Outputs:
   BucketName:
     Value: !Ref RawDataBucket
   TableName:
     Value: !Ref ModelTable
+  FunctionName:
+    Value: !Ref SyncPricingFunction
