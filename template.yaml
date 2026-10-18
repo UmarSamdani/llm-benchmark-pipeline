@@ -52,6 +52,30 @@ Resources:
             Schedule: cron(0 9 * * ? *)
             Description: Daily OpenRouter pricing sync
   
+  SyncScoresFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/sync_scores/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Timeout: 300
+      MemorySize: 1024
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref RawDataBucket
+          TABLE_NAME: !Ref ModelTable
+      Policies:
+        - S3WritePolicy:
+            BucketName: !Ref RawDataBucket
+        - DynamoDBWritePolicy:
+            TableName: !Ref ModelTable
+      Events:
+        WeeklySync:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 10 ? * SUN *)
+            Description: Weekly Epoch benchmark sync
+  
 
 Outputs:
   BucketName:
@@ -60,3 +84,5 @@ Outputs:
     Value: !Ref ModelTable
   FunctionName:
     Value: !Ref SyncPricingFunction
+  ScoresFunctionName:
+    Value: !Ref SyncScoresFunction
