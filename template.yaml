@@ -75,6 +75,20 @@ Resources:
           Properties:
             Schedule: cron(0 10 ? * SUN *)
             Description: Weekly Epoch benchmark sync
+  ResolveFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/resolve/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Timeout: 300
+      MemorySize: 512
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref ModelTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ModelTable
   
 
 Outputs:
@@ -86,3 +100,5 @@ Outputs:
     Value: !Ref SyncPricingFunction
   ScoresFunctionName:
     Value: !Ref SyncScoresFunction
+  ResolveFunctionName:
+    Value: !Ref ResolveFunction

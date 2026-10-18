@@ -41,6 +41,15 @@ def lambda_handler(event, context):
                     "source": "openrouter",
                 }
             )
-            written += 1
+            batch.put_item(
+                Item={
+                    "PK": f"MODEL#{model['id']}",
+                    "SK": "META",
+                    "name": model.get("name", ""),
+                    "canonical_slug": model.get("canonical_slug", ""),
+                    "source": "openrouter",
+                }
+            )
+            written += 2
 
     return {"models_fetched": len(models), "records_written": written}
