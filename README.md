@@ -48,6 +48,11 @@ Distinguishing genuine absence from resolver failure is the point. A resolver th
 
 ### Rules that were deliberately not added
 
+A `-v1` suffix rule was briefly added to resolve `amazon/nova-pro-v1`, then removed. It also
+stripped the version from `DeepSeek-V2`, collapsing `DeepSeek-V2`, `V3` and `V4` to the single
+key `deepseek`. A unit test caught the collision before it reached data. The rule would not
+have fixed the Nova case anyway, for the reason above.
+
 `Amazon Nova Pro` does not resolve to `amazon/nova-pro-v1`, because Epoch embeds the organization in its display name while OpenRouter separates it into a prefix. The obvious fix — stripping trailing version numbers from display names — would also collapse `Claude Opus 4` to `claudeopus`, producing false matches against every Opus variant. **The rule was rejected as costing more precision than it bought.**
 
 ---

@@ -89,7 +89,11 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref ModelTable
-  
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource: "*"  
 
 Outputs:
   BucketName:
