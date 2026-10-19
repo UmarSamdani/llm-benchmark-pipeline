@@ -1,7 +1,7 @@
 import json
 import os
 import urllib.request
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import boto3
 
@@ -14,7 +14,7 @@ table = boto3.resource("dynamodb").Table(TABLE)
 OPENROUTER_URL = "https://openrouter.ai/api/v1/models"
 
 def lambda_handler(event, context):
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    today = datetime.now(UTC).strftime("%Y-%m-%d")
 
     with urllib.request.urlopen(OPENROUTER_URL, timeout=30) as response:
         raw = response.read()

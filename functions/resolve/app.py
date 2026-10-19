@@ -1,6 +1,6 @@
 import os
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import boto3
 from boto3.dynamodb.conditions import Attr
@@ -93,9 +93,9 @@ def ask_llm(raw_name, candidates):
             inferenceConfig={"maxTokens": 100, "temperature": 0},
         )
         reply = response["output"]["message"]["content"][0]["text"].strip()
-    except Exception:
+    except Exception as exc:  # noqa: BLE001 - any Bedrock failure must not kill the run
+        print(f"bedrock error for {raw_name!r}: {exc}")
         return None, 0.0
-
     if not reply.startswith("MATCH|"):
         return None, 0.0
 
@@ -116,7 +116,7 @@ def ask_llm(raw_name, candidates):
 
 
 def lambda_handler(event, context):
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    today = datetime.now(UTC).strftime("%Y-%m-%d")
 
     # build the lookup: normalized key -> openrouter id
     lookup = {}

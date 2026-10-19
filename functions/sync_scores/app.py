@@ -3,7 +3,7 @@ import io
 import os
 import urllib.request
 import zipfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import boto3
 
@@ -22,7 +22,7 @@ WANTED = {
 
 
 def lambda_handler(event, context):
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    today = datetime.now(UTC).strftime("%Y-%m-%d")
 
     with urllib.request.urlopen(EPOCH_URL, timeout=60) as response:
         raw = response.read()
@@ -36,28 +36,27 @@ def lambda_handler(event, context):
     written = 0
     skipped = 0
 
-    with zipfile.ZipFile(io.BytesIO(raw)) as archive:
-        with table.batch_writer() as batch:
-            for filename, (benchmark, name_col, score_col) in WANTED.items():
-                text = archive.read(filename).decode("utf-8")
-                for row in csv.DictReader(io.StringIO(text)):
-                    name = (row.get(name_col) or "").strip()
-                    score = (row.get(score_col) or "").strip()
-                    if not name or not score:
-                        skipped += 1
-                        continue
-                    batch.put_item(
-                        Item={
-                            "PK": f"RAWSCORE#epoch#{name}",
-                            "SK": f"SCORE#{benchmark}#{today}",
-                            "raw_name": name,
-                            "benchmark": benchmark,
-                            "score": score,
-                            "release_date": (row.get("date") or row.get("Release date") or ""),
-                            "organization": (row.get("Organization") or ""),
-                            "source": "epoch",
-                        }
-                    )
-                    written += 1
-
+    with zipfile.ZipFile(io.BytesIO(raw)) as archive, table.batch_writer() as batch:
+        for filename, (benchmark, name_col, score_col) in WANTED.items():
+            text = archive.read(filename).decode("utf-8")
+            for row in csv.DictReader(io.StringIO(text)):
+                name = (row.get(name_col) or "").strip()
+                score = (row.get(score_col) or "").strip()
+                if not name or not score:
+                    skipped += 1
+                    continue
+                batch.put_item(
+                    Item={
+                        "PK": f"RAWSCORE#epoch#{name}",
+                        "SK": f"SCORE#{benchmark}#{today}",
+                        "raw_name": name,
+                        "benchmark": benchmark,
+                        "score": score,
+                        "release_date": (row.get("date") or row.get("Release date") or ""),
+                        "organization": (row.get("Organization") or ""),
+                        "source": "epoch",
+                    }
+                )
+                written += 1
+                
     return {"records_written": written, "rows_skipped": skipped}
